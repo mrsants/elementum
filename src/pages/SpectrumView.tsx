@@ -1,7 +1,10 @@
 import { useState } from "react";
+// @ts-ignore
 import Plot from "react-plotly.js";
 import PeaksTable from "../components/PeaksTable";
 import { invoke } from "@tauri-apps/api/core";
+// @ts-ignore
+import { open } from "@tauri-apps/plugin-dialog";
 
 export default function SpectrumView() {
   const [x, setX] = useState<number[]>([]);
@@ -10,14 +13,18 @@ export default function SpectrumView() {
   const [filename, setFilename] = useState("");
 
   async function handleLoad() {
+    const file = await open({
+      filters: [{ name: "CSV", extensions: ["csv"] }],
+    });
+    if (!file) return;
 
-    setFilename(null);
+    setFilename(file as string);
 
     const spectrum = await invoke<{
       x: number[];
       y: number[];
       peaks: { index: number; intensity: number }[];
-    }>("load_spectrum", { path: null });
+    }>("load_spectrum", { path: file });
 
     setX(spectrum.x);
     setY(spectrum.y);
