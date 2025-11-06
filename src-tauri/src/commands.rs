@@ -1,3 +1,32 @@
+// 🧠 Core Processing (`load_spectrum`)
+//
+// This function:
+//
+// • Reads a CSV file using Polars
+// • Extracts the `x` and `y` numeric columns
+// • Converts them into Rust vectors
+// • Performs simple peak detection (local maxima)
+// • Returns the result to the frontend as JSON
+//
+// It serves as the initial analytical engine of the application.
+// In future iterations, this pipeline can incorporate:
+//
+// • Baseline correction
+// • Noise filtering
+// • Smoothing (e.g., Savitzky–Golay)
+// • Peak width analysis
+// • Integration area calculation
+// • Matching against known elemental emission tables
+//
+// 🧪 Example Use Cases:
+//
+// • Detecting heavy metals in contaminated water
+// • Monitoring effluent treatment processes
+// • Validating academic research output
+// • Industrial quality control
+// • Environmental contamination assessment
+// • Teaching spectroscopy principles
+
 // Provides serialization and deserialization so this struct
 // can be sent to the frontend via Tauri (as JSON).
 use serde::{Serialize, Deserialize};
@@ -28,13 +57,19 @@ pub fn load_spectrum(path: String) -> Result<Spectrum, String> {
         .finish()
         .map_err(|e| e.to_string())?;
 
-    // Extract column "x" as f32 values.
-   .unwrap() will panic if the column is missing;
     // this can be improved later with friendlier errors.
-    let x = df.column("x").unwrap().f32().unwrap().into_no_null_iter().collect();
+    let x = df
+        .column("x").unwrap() // will panic if missing; handle later
+        .f32().unwrap()
+        .into_no_null_iter()
+        .collect();
 
     // Extract column "y" (intensities).
-    let y = df.column("y").unwrap().f32().unwrap().into_no_null_iter().collect();
+    let y = df
+        .column("y").unwrap()
+        .f32().unwrap()
+        .into_no_null_iter()
+        .collect();
 
     // Storage for detected peaks.
     // Currently uses a simple local maximum approach.
